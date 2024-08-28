@@ -1,0 +1,155 @@
+--------------------------------------
+ESERCIZIO 1
+--------------------------------------
+WITH TABCOUNT AS (
+    SELECT FID, DATA, COUNT(*) NumeroMulte
+    FROM MULTE
+    GROUP BY FID, DATA)
+SELECT MAX(NumeroMulte)
+FROM TABCOUNT;
+
+--------------------------------------
+ESERCIZIO 2
+--------------------------------------
+-- Calcolare il costo totale delle multe ricevute da ciascun fattorino. 
+-- Quindi, calcolare la media dei costi totali dei fattorini
+
+WITH COSTI_TOT AS (SELECT FID, SUM(COSTO) COSTO_TOT
+    FROM MULTE
+    GROUP BY FID)
+SELECT AVG(COSTO_TOT)
+FROM COSTI_TOT
+
+--------------------------------------
+ESERCIZIO 3
+--------------------------------------
+-- Per ogni azienda, trovare l'identificativo del 
+-- fattorino che ha effettuato più consegne
+
+WITH MAXCONSPERAZIENDA AS(
+    SELECT AID, MAX(NUMCONSEGNE) MAXCONS
+    FROM CONSEGNA
+    GROUP BY AID)
+SELECT C.AID, C.FID
+FROM CONSEGNA C, MAXCONSPERAZIENDA M
+WHERE C.AID=M.AID
+AND C.NUMCONSEGNE=M.MAXCONS;
+
+
+--------------------------------------
+ESERCIZIO 4
+--------------------------------------
+-- Per ogni azienda, trovare l'identificativo del fattorino maschio e
+-- l'identificativo del fattorino femmina che hanno effettuato più consgene
+
+WITH MAXCONSPERAZIENDA AS (
+    SELECT C.AID, F.SESSO, MAX(NUMCONSEGNE) MAXCONS
+    FROM CONSEGNA C, FATTORINO F
+    WHERE C.FID=F.FID
+    GROUP BY C.AID, F.SESSO)
+SELECT C.AID, C.FID, M.SESSO
+FROM CONSEGNA C, MAXCONSPERAZIENDA M
+WHERE C.AID=M.AID
+AND C.NUMCONSEGNE=M.MAXCONS
+
+--------------------------------------
+ESERCIZIO 5
+--------------------------------------
+WITH COSTI_TOT AS (
+    SELECT FID, SUM(COSTO) COSTO_TOT
+    FROM MULTE
+    GROUP BY FID),
+MEDIACOSTI AS (
+    SELECT AVG(COSTO) COSTOMEDIO
+    FROM MULTE)
+SELECT F.FID, F.NOME, C.COSTO_TOT
+FROM COSTI_TOT C, FATTORINO F, MEDIACOSTI M
+WHERE C.FID = F.FID
+AND C.COSTO_TOT>M.COSTOMEDIO;
+
+--------------------------------------
+ESERCIZIO 6
+--------------------------------------
+WITH COSTOMEDIOPERANNO AS (
+    SELECT EXTRACT(YEAR FROM MULTE.DATA) Y, AVG(MULTE.COSTO) COSTOMEDIO
+    FROM MULTE
+    GROUP BY EXTRACT(YEAR FROM MULTE.DATA)
+)
+SELECT M.MID, M.DATA, M.COSTO, C.COSTOMEDIO
+FROM COSTOMEDIOPERANNO C, MULTE M
+WHERE C.Y=EXTRACT(YEAR FROM M.DATA)
+AND M.COSTO > C.COSTOMEDIO
+
+--------------------------------------
+ESERCIZIO 7
+--------------------------------------
+WITH NUMCONSPERF AS (
+    SELECT FID, SUM(NUMCONSEGNE) TOTCONS
+    FROM CONSEGNA
+    GROUP BY FID
+),
+MEDIACONS_TAB AS (
+    SELECT AVG(TOTCONS) AS MEDIACONS
+    FROM NUMCONSPERF
+),
+MEDIACONSPERCITTA AS (
+    SELECT CITTA, AVG(TOTCONS) MEDIA
+    FROM FATTORINO F, NUMCONSPERF C
+    WHERE C.FID = F.FID
+    GROUP BY CITTA
+)
+
+SELECT CITTA, MC.MEDIA, M.MEDIACONS
+FROM MEDIACONSPERCITTA MC, MEDIACONS_TAB M
+WHERE MC.MEDIA<M.MEDIACONS;
+
+--------------------------------------
+ESERCIZIO 8
+--------------------------------------
+WITH RITIRIPERF AS (
+    SELECT FID, SUM(NUMRITIRI) TOT_RITIRI
+    FROM CONSEGNA
+    GROUP BY FID
+),
+MEDIARITIRIPERANNO_TAB AS (
+    SELECT ANNO_NASCITA, AVG(TOT_RITIRI) MEDIARITIRIPERANNO
+    FROM RITIRIPERF R, FATTORINO F
+    WHERE F.FID = R.FID
+    GROUP BY ANNO_NASCITA
+)
+SELECT MR.ANNO_NASCITA
+FROM MEDIARITIRIPERANNO_TAB MR
+WHERE MR.MEDIARITIRIPERANNO=(SELECT MAX(MEDIARITIRIPERANNO) FROM MEDIARITIRIPERANNO_TAB);
+
+--------------------------------------
+ESERCIZIO 9
+--------------------------------------
+-- Identificare il genere e il numero di multe ricevute 
+-- dal genere dei fattorini con il maggior
+-- numero di multe presenti nella base dati.
+WITH MULTEPERGENDER AS (
+    SELECT SESSO, COUNT(*) NUM_MULTE
+    FROM MULTE M, FATTORINO F
+    WHERE M.FID = F.FID
+    GROUP BY SESSO
+)
+SELECT SESSO, NUM_MULTE
+FROM MULTEPERGENDER MG
+WHERE MG.NUM_MULTE=(SELECT MAX(NUM_MULTE) FROM MULTEPERGENDER)
+
+--------------------------------------
+ESERCIZIO 10
+--------------------------------------
+-- Trovare il genere e il numero di consegne 
+-- effettuate dal genere che ha effettuato il
+-- maggior numero di consegne.
+
+WITH CONSPERGENDER AS (
+    SELECT SESSO, SUM(NUMCONSEGNE) TOTCONS
+    FROM FATTORINO F, CONSEGNA C
+    WHERE F.FID = C.FID
+    GROUP BY SESSO
+)
+SELECT SESSO, TOTCONS
+FROM CONSPERGENDER CG
+WHERE CG.TOTCONS = (SELECT MAX(TOTCONS) FROM CONSPERGENDER CG)

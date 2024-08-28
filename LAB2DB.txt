@@ -1,0 +1,171 @@
+--------------------------------------
+ESERCIZIO 1
+--------------------------------------
+SELECT *
+FROM FATTORINO
+
+--------------------------------------
+ESERCIZIO 2
+--------------------------------------
+SELECT DISTINCT AID
+FROM AZIENDA
+
+--------------------------------------
+ESERCIZIO 3
+--------------------------------------
+SELECT NOME, FID
+FROM FATTORINO
+WHERE INIZIALI='B';
+
+--------------------------------------
+ESERCIZIO 4
+--------------------------------------
+SELECT NOME, SESSO, FID, TEL
+FROM FATTORINO
+WHERE TEL<>'8467' OR TEL IS NULL;
+
+--------------------------------------
+ESERCIZIO 5
+--------------------------------------
+SELECT DISTINCT F.NOME, F.CITTA
+FROM MULTE M, FATTORINO F
+WHERE M.FID=F.FID;
+
+--------------------------------------
+ESERCIZIO 6
+--------------------------------------
+SELECT DISTINCT F.NOME, F.INIZIALI
+FROM MULTE M, FATTORINO F, AZIENDA AZ
+WHERE M.FID=F.FID 
+AND AZ.FID=M.FID 
+AND M.DATA > TO_DATE('31/12/2000', 'DD/MM/YYYY')
+ORDER BY F.NOME;
+
+--------------------------------------
+ESERCIZIO 7
+--------------------------------------
+SELECT F.FID, CO.AID
+FROM CONSEGNA CO, FATTORINO F
+WHERE CO.FID = F.FID
+AND F.CITTA='Stratford'
+AND CO.NUMCONSEGNE >= 1 AND CO.NUMRITIRI >= 2;
+
+--------------------------------------
+ESERCIZIO 8
+--------------------------------------
+SELECT DISTINCT F.FID
+FROM FATTORINO F, CONSEGNA CO, AZIENDA AZ
+WHERE F.FID=CO.FID AND CO.AID=AZ.AID
+AND F.ANNO_NASCITA>1982
+AND AZ.INCARICO='primo'
+AND CO.NUMCONSEGNE >=1
+ORDER BY F.FID;
+
+--------------------------------------
+ESERCIZIO 9
+--------------------------------------
+SELECT F.NOME
+FROM FATTORINO F, CONSEGNA CO
+WHERE F.FID=CO.FID
+AND (F.CITTA='Inglewood' OR F.CITTA='Stratford') 
+GROUP BY F.FID, F.NOME
+HAVING COUNT(AID)>=2;
+
+--------------------------------------
+ESERCIZIO 10
+--------------------------------------
+SELECT F.FID, SUM(M.COSTO) IMPORTO
+FROM FATTORINO F, MULTE M
+WHERE F.FID = M.FID AND F.CITTA='Inglewood'
+GROUP BY F.FID
+HAVING COUNT(*)>=2;
+
+--------------------------------------
+ESERCIZIO 11
+--------------------------------------
+SELECT F.NOME, MIN(M.COSTO) MULTAMIN
+FROM FATTORINO F, MULTE M
+WHERE M.FID=F.FID
+GROUP BY F.FID, F.NOME
+HAVING COUNT(*)>=2 AND COUNT(*)<=4;
+
+--------------------------------------
+ESERCIZIO 12
+--------------------------------------
+SELECT SUM(NUMCONSEGNE) CONSEGNE, SUM(NUMRITIRI) RITIRI 
+FROM CONSEGNA CO, FATTORINO F
+WHERE F.FID = CO.FID
+AND F.CITTA <> 'Stratford'
+AND NOME LIKE 'B%'
+
+--------------------------------------
+ESERCIZIO 13
+--------------------------------------
+-- Trovare codice identificativo, nome e iniziali (campo INIZIALI) 
+-- dei fattorini che non hanno mai preso multe.
+SELECT FID, NOME, INIZIALI
+FROM FATTORINO
+WHERE FID NOT IN (
+    SELECT FID
+    FROM MULTE
+)
+
+--------------------------------------
+ESERCIZIO 14
+--------------------------------------
+-- Trovare il codice identificativo di tutti i fattorini che 
+-- hanno ricevuto almeno una multa da 25 euro e almeno una multa da 30 euro. 
+SELECT FID
+FROM FATTORINO
+WHERE FID IN (
+    SELECT FID
+    FROM MULTE
+    WHERE COSTO = 25
+)
+AND FID IN (
+    SELECT FID
+    FROM MULTE
+    WHERE COSTO = 30
+);
+
+--------------------------------------
+ESERCIZIO 15
+-------------------------------------- 
+SELECT DISTINCT F.FID, F.NOME
+FROM FATTORINO F, MULTE M
+WHERE F.FID = M.FID
+GROUP BY F.FID, M.DATA, F.NOME
+HAVING COUNT(*)>1
+
+--------------------------------------
+ESERCIZIO 16
+--------------------------------------
+SELECT F.FID, MIN(M.DATA) PRIMA_MULTA, MAX(M.DATA) ULTIMA_MULTA
+FROM FATTORINO F, MULTE M
+WHERE F.FID=M.FID
+GROUP BY F.FID
+HAVING COUNT(*)>=2;
+
+-----------------------2,5 kg di salsiccia---------------
+ESERCIZIO 17
+--------------------------------------
+SELECT CO.FID
+FROM CONSEGNA CO
+GROUP BY CO.FID 
+HAVING COUNT(*) = (
+    SELECT COUNT(*)
+    FROM AZIENDA
+);
+
+--------------------------------------
+ESERCIZIO 18
+--------------------------------------
+SELECT DISTINCT FID
+FROM CONSEGNA
+WHERE FID <> 57
+AND AID IN (
+    SELECT AID
+    FROM CONSEGNA
+    WHERE FID = 57
+);
+
